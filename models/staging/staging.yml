@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: DBT_COURSE_RAW
+    description : Daily Extract of CRM system
+    database: SANDBOX_OR
+    tables:
+      - name: CUSTOMERS
+        description : My customer table
+      - name: orders
+        loaded_at_field: _etl_loaded_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+
+models:
+  - name: stg_customer
+    description: Reference table for unique customers
+    columns:
+      - name: customer_id
+        description: Unique key
+        tests:
+          - unique
+          - not_null
+  - name: stg_order
+    columns:
+      - name: status
+        description: "{{ doc('order_status') }}"
+        tests:
+          - accepted_values:
+              values: ['returned','completed', 'shipped','placed','return_pending']
